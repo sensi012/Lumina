@@ -7,3 +7,8 @@ output "cloudfront_distribution_id" {
   description = "ID of the CloudFront distribution"
   value       = module.cloudfront.cloudfront_id
 }
+
+output "github_deploy_role_arn" {
+  description = "The ARN of the IAM role for GitHub Actions to assume"
+  value       = module.iam.github_deploy_role_arn
+}

@@ -1,3 +1,5 @@
 aws_region   = "us-east-1"
 environment  = "prod"
 project_name = "Lumina"
+github_org   = "sensi012"
+github_repo  = "Lumina"

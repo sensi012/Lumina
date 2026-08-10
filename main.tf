@@ -14,3 +14,13 @@ module "cloudfront" {
   s3_bucket_arn                  = module.s3.bucket_arn
   s3_bucket_regional_domain_name = module.s3.bucket_domain_name
 }
+
+module "iam" {
+  source         = "./module/iam"
+  project_name   = var.project_name
+  environment    = var.environment
+  github_org     = var.github_org
+  github_repo    = var.github_repo
+  s3_bucket_arn  = module.s3.bucket_arn
+  cloudfront_arn = module.cloudfront.cloudfront_arn
+}
