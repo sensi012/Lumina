@@ -1,6 +1,6 @@
 # Lumina Static Site — CI/CD Pipeline on AWS
 
-[![Deploy site content](https://img.shields.io/github/actions/workflow/status/YOUR_USER/lumina/deploy.yml?label=deploy&logo=github)](https://github.com/YOUR_USER/lumina/actions/workflows/deploy.yml)
+[![Deploy site content](https://img.shields.io/github/actions/workflow/status/sensi012/Lumina/deploy.yml?label=deploy&logo=github)](https://github.com/sensi012/Lumina/actions/workflows/deploy.yml)
 [![IaC: Terraform](https://img.shields.io/badge/IaC-Terraform_1.9-7B42BC?logo=terraform)](https://www.terraform.io/)
 [![Cloud: AWS](https://img.shields.io/badge/Cloud-AWS-FF9900?logo=amazon-aws&logoColor=white)](https://aws.amazon.com/)
 
