@@ -95,7 +95,8 @@ lumina/
 │   └── assets/
 ├── module/
 │   ├── s3/                     # S3 Bucket, CORS, and Block Public Access
-│   └── cloudfront/             # CloudFront Distribution and OAC
+│   ├── cloudfront/             # CloudFront Distribution and OAC
+│   └── iam/                    # GitHub OIDC Provider and Deployment Role
 ├── main.tf                     # Modules invocation
 ├── provider.tf                 # AWS provider config + default tags
 ├── backend.tf                  # remote S3 state backend
@@ -133,6 +134,8 @@ Copy `terraform.tfvars.example` to `terraform.tfvars` and edit your values:
 aws_region   = "us-east-1"
 environment  = "prod"
 project_name = "Lumina"
+github_org   = "sensi012"
+github_repo  = "Lumina"
 ```
 
 ### Step 3 — Provision infrastructure with Terraform
