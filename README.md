@@ -1,7 +1,7 @@
 # Lumina Static Site — CI/CD Pipeline on AWS
 
 [![Deploy site content](https://img.shields.io/github/actions/workflow/status/sensi012/Lumina/deploy.yml?label=deploy&logo=github)](https://github.com/sensi012/Lumina/actions/workflows/deploy.yml)
-[![IaC: Terraform](https://img.shields.io/badge/IaC-Terraform_1.9-7B42BC?logo=terraform)](https://www.terraform.io/)
+[![IaC: Terraform](https://img.shields.io/badge/IaC-Terraform_1.15-7B42BC?logo=terraform)](https://www.terraform.io/)
 [![Cloud: AWS](https://img.shields.io/badge/Cloud-AWS-FF9900?logo=amazon-aws&logoColor=white)](https://aws.amazon.com/)
 
 **Live demo →** `https://d39ms03uehpi2i.cloudfront.net`
@@ -64,7 +64,7 @@
 | Storage | AWS S3 | Static file hosting — private bucket, versioning enabled |
 | CDN | AWS CloudFront | Global delivery, HTTPS termination, DDoS protection |
 | Auth | AWS IAM + OIDC | Short-lived credentials for GitHub Actions — no stored keys |
-| IaC | Terraform 1.9 | All infrastructure declared as code, remote state in S3 |
+| IaC | Terraform 1.15 | All infrastructure declared as code, remote state in S3 |
 | CI/CD | GitHub Actions | Content deploys dynamically using AWS CLI in the workflow |
 
 ---
@@ -112,7 +112,7 @@ lumina/
 ## Prerequisites
 
 - [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html) configured with an IAM user (`aws sts get-caller-identity` should return your ARN)
-- [Terraform](https://developer.hashicorp.com/terraform/install) >= 1.9
+- [Terraform](https://developer.hashicorp.com/terraform/install) >= 1.15
 - A GitHub account with a public repository for this project
 
 ---
