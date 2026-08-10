@@ -124,7 +124,6 @@ The S3 bucket that stores Terraform state must exist before `terraform init` can
 
 1. Create a bucket named `lumina-terraform-state` in AWS.
 2. Enable versioning and encryption.
-3. Uncomment the code in `backend.tf`.
 
 ### Step 2 — Configure Terraform variables
 
