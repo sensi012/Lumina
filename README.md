@@ -4,7 +4,7 @@
 [![IaC: Terraform](https://img.shields.io/badge/IaC-Terraform_1.9-7B42BC?logo=terraform)](https://www.terraform.io/)
 [![Cloud: AWS](https://img.shields.io/badge/Cloud-AWS-FF9900?logo=amazon-aws&logoColor=white)](https://aws.amazon.com/)
 
-**Live demo →** `https://YOUR_CLOUDFRONT_DOMAIN.cloudfront.net`
+**Live demo →** `https://d39ms03uehpi2i.cloudfront.net`
 
 > **Scenario:** Lumina had no deployment process — developers uploaded files manually via FTP. One bad upload took the site down for 4 hours. This project replaces every manual step with a fully automated, auditable, zero-downtime pipeline. A `git push` to `main` is all it takes to go live.
 
