@@ -1,0 +1,60 @@
+name: Deploy Site
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/**'
+
+# These permissions are required for GitHub OIDC to work
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      PROJECT_NAME: "lumina"
+      ENVIRONMENT: "prod"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Fetch Infrastructure Details
+        id: infra
+        run: |
+          # Dynamically fetch the S3 bucket name (take the first match)
+          BUCKET_NAME=$(aws s3api list-buckets --query "Buckets[?starts_with(Name, '${PROJECT_NAME}-${ENVIRONMENT}-static')].Name" --output text | awk '{print $1}')
+          if [ -z "$BUCKET_NAME" ] || [ "$BUCKET_NAME" == "None" ]; then
+            echo "Error: Could not find S3 bucket starting with ${PROJECT_NAME}-${ENVIRONMENT}-static"
+            exit 1
+          fi
+          echo "Found S3 Bucket: $BUCKET_NAME"
+          echo "bucket_name=$BUCKET_NAME" >> $GITHUB_OUTPUT
+
+          # Dynamically fetch the CloudFront Distribution ID using the bucket as its origin
+          DISTRIBUTION_ID=$(aws cloudfront list-distributions --query "DistributionList.Items[*].[Id, Origins.Items[0].DomainName]" --output text | grep "$BUCKET_NAME" | awk '{print $1}' | head -n 1)
+          if [ -z "$DISTRIBUTION_ID" ]; then
+            echo "Error: Could not find CloudFront Distribution for the bucket"
+            exit 1
+          fi
+          echo "Found CloudFront Distribution: $DISTRIBUTION_ID"
+          echo "distribution_id=$DISTRIBUTION_ID" >> $GITHUB_OUTPUT
+
+      - name: Sync site to S3
+        run: |
+          aws s3 sync ./src/ s3://${{ steps.infra.outputs.bucket_name }}/ --delete
+
+      - name: Invalidate CloudFront cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ steps.infra.outputs.distribution_id }} \
+            --paths "/*"
