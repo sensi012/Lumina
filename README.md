@@ -18,7 +18,7 @@
 | CI/CD | GitHub Actions pipeline: sync to S3 → invalidate CloudFront |
 | Cloud security | OIDC authentication — zero long-lived AWS credentials stored anywhere |
 | CDN & HTTPS | CloudFront OAC + ACM — private S3 origin, HTTPS enforced globally |
-| State management | Remote Terraform state in S3 with DynamoDB locking |
+| State management | Remote Terraform state in S3 with native S3 state locking |
 | IaC best practices | Provider-level `default_tags`, remote backend, least-privilege IAM policies |
 
 ---
