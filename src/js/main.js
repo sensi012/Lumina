@@ -125,7 +125,7 @@ const COPY_VARIATIONS = {
   },
   urgent: {
     headline: "Your Competitors Are Already Using AI Marketing. Don't Get Left Behind.",
-    body: "Scale customer acquisition today with Lumina. Claim your 30-day free trial and experience self-optimizing multi-channel ad campaigns in under 60 seconds.",
+    body: "Scale customer acquisition today with Lumina. Claim your 14-day free trial and experience self-optimizing multi-channel ad campaigns in under 60 seconds.",
     ctr: "5.4% Predicted CTR (High Urgency)"
   },
   professional: {
