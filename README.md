@@ -17,7 +17,7 @@
 | Infrastructure as Code | All AWS resources provisioned with Terraform — modular structure |
 | CI/CD | GitHub Actions pipeline: sync to S3 → invalidate CloudFront |
 | Cloud security | OIDC authentication — zero long-lived AWS credentials stored anywhere |
-| CDN & HTTPS | CloudFront OAC + ACM — private S3 origin, HTTPS enforced globally |
+| CDN & HTTPS | CloudFront OAC — private S3 origin, HTTPS enforced globally |
 | State management | Remote Terraform state in S3 with native S3 state locking |
 | IaC best practices | Provider-level `default_tags`, remote backend, least-privilege IAM policies |
 
@@ -34,7 +34,7 @@
 │        ▼                                                             │
 │  ┌─────────────┐   OIDC token    ┌──────────────────┐               │
 │  │   GitHub    │ ─────────────── │   AWS STS        │               │
-│  │   Actions   │ ◄── temp creds ─│   (15 min TTL)   │               │
+│  │   Actions   │ ◄── temp creds ─│   (Short lived credentials)   │               │
 │  └─────────────┘                 └──────────────────┘               │
 │        │                                                             │
 │        ├── aws s3 sync ──────────► S3 bucket (private)              │
