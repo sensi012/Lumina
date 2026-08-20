@@ -6,6 +6,12 @@ on:
       - main
     paths:
       - 'src/**'
+      - 'index.html'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tailwind.config.js'
+      - 'tsconfig.json'
+      - 'vite.config.ts'
 
 # These permissions are required for GitHub OIDC to work
 permissions:
@@ -21,6 +27,18 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build site
+        run: npm run build
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -51,7 +69,7 @@ jobs:
 
       - name: Sync site to S3
         run: |
-          aws s3 sync ./src/ s3://${{ steps.infra.outputs.bucket_name }}/ --delete
+          aws s3 sync ./dist/ s3://${{ steps.infra.outputs.bucket_name }}/ --delete
 
       - name: Invalidate CloudFront cache
         run: |

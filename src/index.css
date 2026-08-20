@@ -1,0 +1,48 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-paper-100 text-charcoal-900 font-sans antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display tracking-tight text-charcoal-950 font-bold;
+  }
+}
+
+/* Stark Hairline Structural Dividers */
+.hairline-b {
+  border-bottom: 1px solid theme('colors.borderline.DEFAULT');
+}
+
+.hairline-t {
+  border-top: 1px solid theme('colors.borderline.DEFAULT');
+}
+
+.hairline-r {
+  border-right: 1px solid theme('colors.borderline.DEFAULT');
+}
+
+.hairline-l {
+  border-left: 1px solid theme('colors.borderline.DEFAULT');
+}
+
+/* Custom Minimal Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F4F4F6;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D4D4D8;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #A1A1AA;
+}

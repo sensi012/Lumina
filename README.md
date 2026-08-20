@@ -61,9 +61,12 @@
 
 | Layer | Service / Tool | Purpose |
 |---|---|---|
+| Frontend Core | React 18 + Vite 6 (TypeScript) | High-performance reactive UI and component modularity |
+| Styling & Design | Tailwind CSS | Bespoke design tokens, obsidian palette, zero generic AI slop |
+| Component Primitives | Radix UI Primitives (Unstyled) | Accessible Tabs, Dialogs, Sliders, Accordions, and Switches |
 | Storage | AWS S3 | Static file hosting — private bucket, versioning enabled |
-| CDN | AWS CloudFront | Global delivery, HTTPS termination, DDoS protection |
-| Auth | AWS IAM + OIDC | Short-lived credentials for GitHub Actions — no stored keys |
+| CDN | AWS CloudFront | Global delivery, HTTPS termination, DDoS protection, OAC |
+| Auth | AWS IAM + OIDC | Short-lived STS credentials for GitHub Actions — no stored keys |
 | IaC | Terraform 1.15 | All infrastructure declared as code, remote state in S3 |
 | CI/CD | GitHub Actions | Content deploys dynamically using AWS CLI in the workflow |
 
@@ -73,6 +76,7 @@
 
 | Decision | Choice | Rationale |
 |---|---|---|
+| Frontend Engine | Vite + React + Radix UI | Combines sub-second development feedback with unstyled, accessible UI primitives and optimized static production builds. |
 | S3 access | Private bucket + CloudFront OAC | Public S3 buckets expose the origin directly, bypass CloudFront security headers, and cannot enforce HTTPS. OAC restricts S3 reads to this specific distribution only. |
 | OAC vs OAI | OAC (Origin Access Control) | OAI is the legacy approach. OAC is AWS's current recommendation: supports more S3 features, uses SigV4 signing. |
 | CI/CD auth | GitHub Actions OIDC | Long-lived IAM access keys are a persistent security liability. OIDC tokens are short-lived (15 min), scoped to a specific repository, and require no rotation. |
@@ -88,22 +92,33 @@ lumina/
 ├── .github/
 │   └── workflows/
 │       └── deploy.yml          # content pipeline: Dynamic S3 sync + CF invalidation
-├── src/
-│   ├── index.html              # landing page
-│   ├── css/
-│   ├── js/
-│   └── assets/
-├── module/
-│   ├── s3/                     # S3 Bucket, CORS, and Block Public Access
-│   ├── cloudfront/             # CloudFront Distribution and OAC
-│   └── iam/                    # GitHub OIDC Provider and Deployment Role
-├── main.tf                     # Modules invocation
-├── provider.tf                 # AWS provider config + default tags
-├── backend.tf                  # remote S3 state backend
-├── variable.tf                 # input variable declarations
-├── terraform.tfvars.example    # example variables file
-├── terraform.tfvars            # your actual values (ignored by git)
-├── output.tf                   # values for outputs (bucket id, distribution id)
+├── src/                        # React 18 + TypeScript Application Source
+│   ├── components/
+│   │   ├── layout/             # Navbar, CommandMenu (⌘K), Footer
+│   │   ├── sections/           # Hero, Orchestrator, Attribution, UnitEconomics, Cloud, Pricing, FAQ
+│   │   └── ui/                 # Radix UI wrappers (Tabs, Dialog, Slider, Accordion, Switch)
+│   ├── data/                   # Benchmarks, attribution matrices, and infrastructure specs
+│   ├── lib/                    # Class merge & formatting utilities
+│   ├── types/                  # Strict TypeScript interfaces
+│   ├── App.tsx
+│   ├── main.tsx
+│   └── index.css               # Tailwind directives & typography utilities
+├── scripts/
+│   └── backend-bucket.sh       # S3 backend bootstrap script
+├── terraform/                  # Terraform 1.15 Infrastructure as Code
+│   ├── modules/
+│   │   ├── s3/                 # S3 Bucket, CORS, and Block Public Access
+│   │   ├── cloudfront/         # CloudFront Distribution and OAC
+│   │   └── iam/                # GitHub OIDC Provider and Deployment Role
+│   ├── main.tf                 # Modules invocation
+│   ├── provider.tf             # AWS provider config + default tags
+│   ├── backend.tf              # remote S3 state backend
+│   ├── variables.tf            # input variable declarations
+│   ├── terraform.tfvars.example# example variables file
+│   ├── terraform.tfvars        # your actual values (ignored by git)
+│   └── outputs.tf              # values for outputs (bucket id, distribution id)
+├── package.json                # Dependencies: React, Radix UI, Tailwind CSS, Lucide
+├── vite.config.ts              # Vite build configuration
 └── README.md
 ```
 
@@ -120,6 +135,12 @@ lumina/
 ## Getting started
 
 ### Step 1 — Bootstrap Terraform state backend (one-time, manual)
+
+Run the bootstrap script from the project root:
+
+```bash
+bash scripts/backend-bucket.sh
+```
 
 The S3 bucket that stores Terraform state must exist before `terraform init` can run. This is a one-time setup.
 

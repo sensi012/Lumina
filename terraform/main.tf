@@ -1,12 +1,12 @@
 module "s3" {
-  source           = "./module/s3"
+  source           = "./modules/s3"
   project_name     = var.project_name
   environment      = var.environment
-  source_file_path = "./src"
+  source_file_path = "../dist"
 }
 
 module "cloudfront" {
-  source                         = "./module/cloudfront"
+  source                         = "./modules/cloudfront"
   project_name                   = var.project_name
   environment                    = var.environment
   cloudfront_name                = "${var.project_name}-${var.environment}-cdn"
@@ -16,7 +16,7 @@ module "cloudfront" {
 }
 
 module "iam" {
-  source         = "./module/iam"
+  source         = "./modules/iam"
   project_name   = var.project_name
   environment    = var.environment
   github_org     = var.github_org
