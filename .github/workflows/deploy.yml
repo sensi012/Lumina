@@ -21,6 +21,7 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment: prod
     env:
       PROJECT_NAME: "lumina"
       ENVIRONMENT: "prod"
