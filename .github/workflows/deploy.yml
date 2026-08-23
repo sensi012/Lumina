@@ -12,6 +12,8 @@ on:
       - 'tailwind.config.js'
       - 'tsconfig.json'
       - 'vite.config.ts'
+      - '.github/workflows/**'
+  workflow_dispatch:
 
 # These permissions are required for GitHub OIDC to work
 permissions:
