@@ -27,10 +27,12 @@ data "aws_iam_policy_document" "github_assume_role" {
       values   = ["sts.amazonaws.com"]
     }
     condition {
-      test     = "StringEquals"
+      test     = "StringLike"
       variable = "token.actions.githubusercontent.com:sub"
       values = [
-        "repo:${var.github_org}/${var.github_repo}:environment:${var.environment}"
+        "repo:${var.github_org}/${var.github_repo}:environment:${var.environment}",
+        "repo:${var.github_org}@*/${var.github_repo}@*:environment:${var.environment}",
+        "repo:${var.github_org}*/${var.github_repo}*:environment:${var.environment}"
       ]
     }
   }
