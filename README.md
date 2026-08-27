@@ -3,8 +3,9 @@
 [![Deploy site content](https://img.shields.io/github/actions/workflow/status/sensi012/Lumina/deploy.yml?label=deploy&logo=github)](https://github.com/sensi012/Lumina/actions/workflows/deploy.yml)
 [![IaC: Terraform](https://img.shields.io/badge/IaC-Terraform_1.15-7B42BC?logo=terraform)](https://www.terraform.io/)
 [![Cloud: AWS](https://img.shields.io/badge/Cloud-AWS-FF9900?logo=amazon-aws&logoColor=white)](https://aws.amazon.com/)
+[![Live Demo](https://img.shields.io/badge/Live_Demo-CloudFront-232F3E?logo=amazon-aws&logoColor=FF9900)](https://d39ms03uehpi2i.cloudfront.net/)
 
-**Live demo →** `https://d39ms03uehpi2i.cloudfront.net`
+**🌐 Live Demo →** [https://d39ms03uehpi2i.cloudfront.net/](https://d39ms03uehpi2i.cloudfront.net/)
 
 > **Scenario:** Lumina had no deployment process — developers uploaded files manually via FTP. One bad upload took the site down for 4 hours. This project replaces every manual step with a fully automated, auditable, zero-downtime pipeline. A `git push` to `main` is all it takes to go live.
 
@@ -192,7 +193,7 @@ git commit -m "feat(site): initial Lumina landing page"
 git push origin main
 ```
 
-Watch the **Actions** tab. The pipeline will automatically fetch the correct bucket and distribution, sync your files, and invalidate the cache.
+Watch the **Actions** tab. The pipeline will automatically fetch the correct bucket and distribution, sync your files, and invalidate the cache. Once complete, your site is live globally at [https://d39ms03uehpi2i.cloudfront.net/](https://d39ms03uehpi2i.cloudfront.net/).
 
 ---
 
