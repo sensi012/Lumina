@@ -1,6 +1,11 @@
 name: Lumina CD
 
 on:
+  push:
+    branches:
+      - main
+      - dev
+      - Dev
   workflow_run:
     workflows: ["Lumina CI"]
     types:
@@ -26,7 +31,7 @@ jobs:
   deploy_dev:
     name: Deploy to Dev Environment
     if: |
-      (github.event_name == 'workflow_dispatch' && (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/Dev')) ||
+      ((github.event_name == 'push' || github.event_name == 'workflow_dispatch') && (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/Dev')) ||
       (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && (github.event.workflow_run.head_branch == 'dev' || github.event.workflow_run.head_branch == 'Dev'))
     runs-on: ubuntu-latest
     environment: dev
@@ -117,7 +122,7 @@ jobs:
   deploy_prod:
     name: Deploy to Production Environment
     if: |
-      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      ((github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main') ||
       (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main')
     runs-on: ubuntu-latest
     environment: prod
