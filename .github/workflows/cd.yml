@@ -1,0 +1,198 @@
+name: Lumina CD
+
+on:
+  workflow_run:
+    workflows: ["Lumina CI"]
+    types:
+      - completed
+    branches:
+      - main
+      - dev
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: "us-east-1"
+  PROJECT_NAME: "lumina"
+
+jobs:
+  # ------------------------------------------------------------------
+  # Job 1: Deploy to DEV Environment (dev branch only)
+  # ------------------------------------------------------------------
+  deploy_dev:
+    name: Deploy to Dev Environment
+    if: |
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/dev') ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'dev')
+    runs-on: ubuntu-latest
+    environment: dev
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build site
+        run: npm run build
+
+      - name: Configure AWS credentials (Dev OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.15.8"
+
+      - name: Select or Create Dev Workspace
+        working-directory: ./terraform
+        run: terraform workspace select dev || terraform workspace new dev
+
+      - name: Terraform Init (Dev)
+        working-directory: ./terraform
+        run: terraform init
+
+      - name: Terraform Plan & Drift Detection (Dev)
+        id: plan
+        working-directory: ./terraform
+        run: |
+          set +e
+          terraform plan -var-file="dev.tfvars" -detailed-exitcode -out=tfplan
+          PLAN_EXIT_CODE=$?
+          set -e
+
+          if [ $PLAN_EXIT_CODE -eq 0 ]; then
+            echo "drift_detected=false" >> $GITHUB_OUTPUT
+            echo "No drift detected. Infrastructure matches configuration."
+          elif [ $PLAN_EXIT_CODE -eq 2 ]; then
+            echo "drift_detected=true" >> $GITHUB_OUTPUT
+            echo "Infrastructure drift or pending changes detected."
+          else
+            echo "Terraform plan failed with exit code $PLAN_EXIT_CODE"
+            exit $PLAN_EXIT_CODE
+          fi
+
+      - name: Terraform Apply (Dev)
+        working-directory: ./terraform
+        run: terraform apply -auto-approve tfplan
+
+      - name: Fetch Infrastructure Details
+        id: infra
+        working-directory: ./terraform
+        run: |
+          BUCKET_NAME=$(terraform output -raw s3_bucket_name)
+          DISTRIBUTION_ID=$(terraform output -raw cloudfront_distribution_id)
+          echo "bucket_name=$BUCKET_NAME" >> $GITHUB_OUTPUT
+          echo "distribution_id=$DISTRIBUTION_ID" >> $GITHUB_OUTPUT
+
+      - name: Sync site to S3 (Dev)
+        run: |
+          aws s3 sync ./dist/ s3://${{ steps.infra.outputs.bucket_name }}/ --delete
+
+      - name: Invalidate CloudFront cache (Dev)
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ steps.infra.outputs.distribution_id }} \
+            --paths "/*"
+
+  # ------------------------------------------------------------------
+  # Job 2: Deploy to PRODUCTION Environment (main branch only)
+  # ------------------------------------------------------------------
+  deploy_prod:
+    name: Deploy to Production Environment
+    if: |
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main')
+    runs-on: ubuntu-latest
+    environment: prod
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build site
+        run: npm run build
+
+      - name: Configure AWS credentials (Prod OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.15.8"
+
+      - name: Select or Create Prod Workspace
+        working-directory: ./terraform
+        run: terraform workspace select prod || terraform workspace new prod
+
+      - name: Terraform Init (Prod)
+        working-directory: ./terraform
+        run: terraform init
+
+      - name: Terraform Plan & Drift Detection (Prod)
+        id: plan
+        working-directory: ./terraform
+        run: |
+          set +e
+          terraform plan -var-file="terraform.tfvars" -detailed-exitcode -out=tfplan
+          PLAN_EXIT_CODE=$?
+          set -e
+
+          if [ $PLAN_EXIT_CODE -eq 0 ]; then
+            echo "drift_detected=false" >> $GITHUB_OUTPUT
+            echo "No drift detected. Infrastructure matches configuration."
+          elif [ $PLAN_EXIT_CODE -eq 2 ]; then
+            echo "drift_detected=true" >> $GITHUB_OUTPUT
+            echo "Infrastructure drift or pending changes detected."
+          else
+            echo "Terraform plan failed with exit code $PLAN_EXIT_CODE"
+            exit $PLAN_EXIT_CODE
+          fi
+
+      - name: Terraform Apply (Prod)
+        working-directory: ./terraform
+        run: terraform apply -auto-approve tfplan
+
+      - name: Fetch Infrastructure Details
+        id: infra
+        working-directory: ./terraform
+        run: |
+          BUCKET_NAME=$(terraform output -raw s3_bucket_name)
+          DISTRIBUTION_ID=$(terraform output -raw cloudfront_distribution_id)
+          echo "bucket_name=$BUCKET_NAME" >> $GITHUB_OUTPUT
+          echo "distribution_id=$DISTRIBUTION_ID" >> $GITHUB_OUTPUT
+
+      - name: Sync site to S3 (Prod)
+        run: |
+          aws s3 sync ./dist/ s3://${{ steps.infra.outputs.bucket_name }}/ --delete
+
+      - name: Invalidate CloudFront cache (Prod)
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ steps.infra.outputs.distribution_id }} \
+            --paths "/*"
