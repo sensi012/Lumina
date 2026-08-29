@@ -40,8 +40,8 @@ jobs:
       - name: Terraform Format Check
         run: terraform -chdir=terraform fmt -check
 
-      - name: Terraform init
-        run: terraform -chdir=terraform init
+      - name: Terraform Init (No Backend)
+        run: terraform -chdir=terraform init -backend=false
 
       - name: Terraform Validate
         run: terraform -chdir=terraform validate

@@ -69,7 +69,7 @@ jobs:
           TFVARS_DEV: ${{ secrets.TFVARS_DEV || secrets.TFVARS }}
         run: |
           if [ -n "$TFVARS_DEV" ]; then
-            echo "$TFVARS_DEV" > dev.tfvars
+            echo "$TFVARS_DEV" > terraform/dev.tfvars
           else
             echo "::error::TFVARS_DEV (or TFVARS) secret is missing in GitHub Secrets."
             exit 1
@@ -171,7 +171,7 @@ jobs:
           TFVARS_PROD: ${{ secrets.TFVARS_PROD || secrets.TFVARS }}
         run: |
           if [ -n "$TFVARS_PROD" ]; then
-            echo "$TFVARS_PROD" > terraform.tfvars
+            echo "$TFVARS_PROD" > terraform/terraform.tfvars
           else
             echo "::error::TFVARS_PROD (or TFVARS) secret is missing in GitHub Secrets."
             exit 1
