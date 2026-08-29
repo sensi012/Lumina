@@ -56,12 +56,24 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          role-session-name: githubaction-lumina
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "1.15.8"
+
+      - name: Create dev.tfvars from Secret
+        env:
+          TFVARS_DEV: ${{ secrets.TFVARS_DEV || secrets.TFVARS }}
+        run: |
+          if [ -n "$TFVARS_DEV" ]; then
+            echo "$TFVARS_DEV" > dev.tfvars
+          else
+            echo "::error::TFVARS_DEV (or TFVARS) secret is missing in GitHub Secrets."
+            exit 1
+          fi
 
       - name: Select or Create Dev Workspace
         working-directory: ./terraform
@@ -93,7 +105,7 @@ jobs:
 
       - name: Terraform Apply (Dev)
         working-directory: ./terraform
-        run: terraform apply -auto-approve tfplan
+        run: terraform apply -var-file="dev.tfvars" -auto-approve 
 
       - name: Fetch Infrastructure Details
         id: infra
@@ -154,6 +166,17 @@ jobs:
         with:
           terraform_version: "1.15.8"
 
+      - name: Create Prod.tfvars from Secret
+        env:
+          TFVARS_PROD: ${{ secrets.TFVARS_PROD || secrets.TFVARS }}
+        run: |
+          if [ -n "$TFVARS_PROD" ]; then
+            echo "$TFVARS_PROD" > terraform.tfvars
+          else
+            echo "::error::TFVARS_PROD (or TFVARS) secret is missing in GitHub Secrets."
+            exit 1
+          fi
+
       - name: Select or Create Prod Workspace
         working-directory: ./terraform
         run: terraform workspace select prod || terraform workspace new prod
@@ -184,7 +207,7 @@ jobs:
 
       - name: Terraform Apply (Prod)
         working-directory: ./terraform
-        run: terraform apply -auto-approve tfplan
+        run: terraform apply -var-file="terraform.tfvars" -auto-approve
 
       - name: Fetch Infrastructure Details
         id: infra

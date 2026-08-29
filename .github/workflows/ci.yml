@@ -4,22 +4,10 @@ on:
   push:
     branches:
       - main
-      - dev
       - Dev
-    paths:
-      - 'src/**'
-      - 'index.html'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'tailwind.config.js'
-      - 'tsconfig.json'
-      - 'vite.config.ts'
-      - 'terraform/**'
-      - '.github/workflows/**'
   pull_request:
     branches:
       - main
-      - dev
       - Dev
   workflow_dispatch:
 
@@ -52,7 +40,8 @@ jobs:
       - name: Terraform Format Check
         run: terraform -chdir=terraform fmt -check
 
+      - name: Terraform init
+        run: terraform -chdir=terraform init
+
       - name: Terraform Validate
-        run: |
-          terraform -chdir=terraform init -backend=false
-          terraform -chdir=terraform validate
+        run: terraform -chdir=terraform validate
