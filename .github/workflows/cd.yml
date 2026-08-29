@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - dev
       - Dev
   workflow_run:
     workflows: ["Lumina CI"]
@@ -12,7 +11,6 @@ on:
       - completed
     branches:
       - main
-      - dev
       - Dev
   workflow_dispatch:
 
