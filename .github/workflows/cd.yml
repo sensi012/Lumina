@@ -4,14 +4,14 @@ on:
   push:
     branches:
       - main
-      - Dev
+      - dev
   workflow_run:
     workflows: ["Lumina CI"]
     types:
       - completed
     branches:
       - main
-      - Dev
+      - dev
   workflow_dispatch:
 
 permissions:
@@ -27,7 +27,7 @@ jobs:
   # Job 1: Deploy to DEV Environment (dev branch only)
   # ------------------------------------------------------------------
   deploy_dev:
-    name: Deploy to Dev Environment
+    name: Deploy to dev Environment
     if: |
       ((github.event_name == 'push' || github.event_name == 'workflow_dispatch') && (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/Dev')) ||
       (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && (github.event.workflow_run.head_branch == 'dev' || github.event.workflow_run.head_branch == 'Dev'))
@@ -75,15 +75,15 @@ jobs:
             exit 1
           fi
 
-      - name: Terraform Init (Dev)
+      - name: Terraform Init (dev)
         working-directory: ./terraform
         run: terraform init -reconfigure
 
-      - name: Select or Create Dev Workspace
+      - name: Select or Create dev Workspace
         working-directory: ./terraform
         run: terraform workspace select -or-create dev
 
-      - name: Terraform Plan & Drift Detection (Dev)
+      - name: Terraform Plan & Drift Detection (dev)
         id: plan
         working-directory: ./terraform
         run: |
@@ -103,7 +103,7 @@ jobs:
             exit $PLAN_EXIT_CODE
           fi
 
-      - name: Terraform Apply (Dev)
+      - name: Terraform Apply (dev)
         working-directory: ./terraform
         run: terraform apply -var-file="dev.tfvars" -auto-approve 
 
@@ -116,11 +116,11 @@ jobs:
           echo "bucket_name=$BUCKET_NAME" >> $GITHUB_OUTPUT
           echo "distribution_id=$DISTRIBUTION_ID" >> $GITHUB_OUTPUT
 
-      - name: Sync site to S3 (Dev)
+      - name: Sync site to S3 (dev)
         run: |
           aws s3 sync ./dist/ s3://${{ steps.infra.outputs.bucket_name }}/ --delete
 
-      - name: Invalidate CloudFront cache (Dev)
+      - name: Invalidate CloudFront cache (dev)
         run: |
           aws cloudfront create-invalidation \
             --distribution-id ${{ steps.infra.outputs.distribution_id }} \
