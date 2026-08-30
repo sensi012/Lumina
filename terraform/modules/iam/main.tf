@@ -1,7 +1,7 @@
 data "aws_caller_identity" "current" {}
 
 locals {
-  github_oidc_provider_arn = "arn:aws:iam://${data.aws_caller_identity.current.account_id}:oidc-provider/token.actions.githubusercontent.com"
+  github_oidc_provider_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/token.actions.githubusercontent.com"
 }
 
 data "aws_iam_policy_document" "github_assume_role" {
