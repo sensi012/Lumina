@@ -82,7 +82,7 @@
 | S3 access | Private bucket + CloudFront OAC | Public S3 buckets expose the origin directly, bypass CloudFront security headers, and cannot enforce HTTPS. OAC restricts S3 reads to this specific distribution only. |
 | OAC vs OAI | OAC (Origin Access Control) | OAI is the legacy approach. OAC is AWS's current recommendation: supports more S3 features, uses SigV4 signing. |
 | CI/CD auth | GitHub Actions OIDC | Long-lived IAM access keys are a persistent security liability. OIDC tokens are short-lived (15 min), scoped to a specific repository, and require no rotation. |
-| Dynamic ID Lookup | AWS CLI in Pipeline | The `deploy.yml` pipeline uses AWS CLI to dynamically find the S3 bucket and CloudFront distribution based on tags and origins, removing the need for hardcoded GitHub secrets for AWS resource IDs. |
+| Dynamic ID Lookup | Terraform Outputs in Pipeline | The `cd.yml` pipeline runs Terraform to provision infrastructure, then uses `terraform output` to dynamically fetch the S3 bucket and CloudFront distribution IDs for content deployment, removing the need for hardcoded resource secrets. |
 | `default_tags` | Provider-level | Every resource inherits `Project`, `Environment`, and `ManagedBy=terraform` tags automatically. Ensures consistent tagging without cluttering module code. |
 
 ---
@@ -93,7 +93,8 @@
 lumina/
 ├── .github/
 │   └── workflows/
-│       └── deploy.yml          # content pipeline: Dynamic S3 sync + CF invalidation
+│       ├── ci.yml              # CI pipeline: build and Terraform format/validate
+│       └── cd.yml              # CD pipeline: Terraform apply, S3 sync & CF invalidation
 ├── src/                        # React 18 + TypeScript Application Source
 │   ├── components/
 │   │   ├── layout/             # Navbar, CommandMenu (⌘K), Footer
@@ -146,8 +147,9 @@ bash scripts/backend-bucket.sh
 
 The S3 bucket that stores Terraform state must exist before `terraform init` can run. This is a one-time setup.
 
-1. Create a bucket named `lumina-terraform-state` in AWS.
-2. Enable versioning and encryption.
+1. The script creates a bucket named `lumina-terraform-state` in AWS.
+2. It enables versioning and blocks public access.
+3. **Important:** Open `terraform/backend.tf` and update the `bucket` value to match the bucket you just created (e.g., `lumina-terraform-state`).
 
 ### Step 2 — Configure Terraform variables
 
@@ -168,51 +170,59 @@ terraform init
 terraform fmt -recursive
 terraform validate
 
+# Create and switch to the production workspace
+terraform workspace select -or-create prod
+
 # Review every line of the plan before applying
-terraform plan -out=tfplan
+terraform plan -var-file="terraform.tfvars" -out=tfplan
 
 terraform apply tfplan
 ```
 
 Apply takes 5–15 minutes (CloudFront distribution deployment is the bottleneck).
 
+*Note: You only need to run this manually once to create the GitHub Actions OIDC IAM role. Future infrastructure changes will be automatically applied by the CD pipeline.*
+
 ### Step 4 — Add GitHub Secrets
 
-After applying, add the IAM Role ARN to your GitHub repo under **Settings → Secrets and variables → Actions**:
+After applying, add the following secrets to your GitHub repo under **Settings → Secrets and variables → Actions**:
 
-- **`AWS_ROLE_ARN`**
+- **`AWS_ROLE_ARN`**: The ARN of the IAM role created in Step 3.
+- **`TFVARS_PROD`** (and optionally **`TFVARS_DEV`**): The contents of your `terraform.tfvars` file, so the pipeline can apply infrastructure updates.
 
-*Note: You do not need to add the S3 bucket name or CloudFront Distribution ID as secrets. The deployment pipeline uses AWS CLI to dynamically find them based on the `Lumina` project and `prod` environment variables!*
+*Note: You do not need to add the S3 bucket name or CloudFront Distribution ID as secrets. The deployment pipeline uses `terraform output` to dynamically find them.*
 
 ### Step 5 — Deploy the site
 
-Push any change to the `src/` directory on `main`:
+Push your code changes to the `main` branch (or `dev` for the dev environment):
 
 ```bash
-git add src/
+git add .
 git commit -m "feat(site): initial Lumina landing page"
 git push origin main
 ```
 
-Watch the **Actions** tab. The pipeline will automatically fetch the correct bucket and distribution, sync your files, and invalidate the cache. Once complete, your site is live globally at [https://d39ms03uehpi2i.cloudfront.net/](https://d39ms03uehpi2i.cloudfront.net/).
+Watch the **Actions** tab. The CD pipeline will automatically apply any infrastructure changes, build the frontend, sync your files, and invalidate the cache. Once complete, your site is live globally.
 
 ---
 
 ## CI/CD pipeline
 
-### `deploy.yml` — content deployment
+### `ci.yml` & `cd.yml` — continuous integration and deployment
 
-| Trigger | `push` to `main` with changes in `src/**` |
+| Trigger | `push` to `main` or `dev` branches |
 |---|---|
-| IAM permissions | `s3:PutObject`, `s3:DeleteObject`, `s3:ListAllMyBuckets`, `cloudfront:ListDistributions`, `cloudfront:CreateInvalidation` |
-| Auth | GitHub OIDC — no secrets stored |
+| IAM permissions | Full infrastructure permissions (S3, CloudFront, IAM) via OIDC |
+| Auth | GitHub OIDC — no long-lived AWS keys stored |
 
 **Steps:**
-1. Checkout source
-2. Assume IAM deploy role via OIDC
-3. Dynamically query AWS via AWS CLI to find the `lumina-prod-static` bucket and its associated CloudFront distribution.
-4. `aws s3 sync ./src/ s3://BUCKET/ --delete`
-5. `aws cloudfront create-invalidation --paths "/*"`
+1. Checkout source & setup Node.js
+2. Build frontend application (`npm run build`)
+3. Assume IAM deploy role via OIDC
+4. Run `terraform init` and `terraform apply` to provision/update infrastructure
+5. Fetch S3 bucket and CloudFront distribution dynamically using `terraform output`
+6. `aws s3 sync ./dist/ s3://BUCKET/ --delete`
+7. `aws cloudfront create-invalidation --paths "/*"`
 
 ---
 
