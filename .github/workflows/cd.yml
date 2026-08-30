@@ -81,7 +81,7 @@ jobs:
 
       - name: Select or Create Dev Workspace
         working-directory: ./terraform
-        run: terraform workspace select dev || terraform workspace new dev
+        run: terraform workspace select -or-create dev
 
       - name: Terraform Plan & Drift Detection (Dev)
         id: plan
@@ -183,7 +183,7 @@ jobs:
 
       - name: Select or Create Prod Workspace
         working-directory: ./terraform
-        run: terraform workspace select prod || terraform workspace new prod
+        run: terraform workspace select -or-create prod
 
       - name: Terraform Plan & Drift Detection (Prod)
         id: plan
