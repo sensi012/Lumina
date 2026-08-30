@@ -75,13 +75,13 @@ jobs:
             exit 1
           fi
 
+      - name: Terraform Init (Dev)
+        working-directory: ./terraform
+        run: terraform init -reconfigure
+
       - name: Select or Create Dev Workspace
         working-directory: ./terraform
         run: terraform workspace select dev || terraform workspace new dev
-
-      - name: Terraform Init (Dev)
-        working-directory: ./terraform
-        run: terraform init
 
       - name: Terraform Plan & Drift Detection (Dev)
         id: plan
@@ -177,13 +177,13 @@ jobs:
             exit 1
           fi
 
+      - name: Terraform Init (Prod)
+        working-directory: ./terraform
+        run: terraform init -reconfigure
+
       - name: Select or Create Prod Workspace
         working-directory: ./terraform
         run: terraform workspace select prod || terraform workspace new prod
-
-      - name: Terraform Init (Prod)
-        working-directory: ./terraform
-        run: terraform init
 
       - name: Terraform Plan & Drift Detection (Prod)
         id: plan
