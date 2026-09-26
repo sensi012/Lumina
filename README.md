@@ -8,7 +8,7 @@
 
 **🌐 Live Demo →** [https://d39ms03uehpi2i.cloudfront.net/](https://d39ms03uehpi2i.cloudfront.net/)
 
-> **Scenario:** Lumina had no deployment process — developers uploaded files manually via FTP. One bad upload took the site down for 4 hours. This project replaces every manual step with a fully automated, auditable, zero-downtime pipeline. A `git push` to `main` is all it takes to go live.
+> **Scenario:** Lumina had no deployment process developers uploaded files manually via FTP. One bad upload took the site down for 4 hours. This project replaces every manual step with a fully automated, auditable, zero-downtime pipeline. A `git push` to `main` is all it takes to go live.
 
 ---
 
