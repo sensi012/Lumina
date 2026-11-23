@@ -22,27 +22,6 @@ resource "aws_s3_bucket_versioning" "website" {
   }
 }
 
-resource "aws_s3_object" "object" {
-  for_each = fileset("${path.root}/${var.source_file_path}", "**")
-
-  bucket = aws_s3_bucket.website.id
-  key    = each.value
-  source = "${path.root}/${var.source_file_path}/${each.value}"
-
-  content_type = lookup({
-    "html" = "text/html"
-    "css"  = "text/css"
-    "js"   = "application/javascript"
-    "png"  = "image/png"
-    "jpg"  = "image/jpeg"
-    "jpeg" = "image/jpeg"
-    "svg"  = "image/svg+xml"
-    "json" = "application/json"
-  }, split(".", each.value)[length(split(".", each.value)) - 1], "application/octet-stream")
-
-  depends_on = [aws_s3_bucket.website]
-}
-
 resource "aws_s3_bucket_cors_configuration" "app_bucket" {
   bucket = aws_s3_bucket.website.id
 

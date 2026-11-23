@@ -1,6 +1,6 @@
 terraform {
   backend "s3" {
-    bucket       = "lumina-prod-static-21c45c72"
+    bucket       = "lumina-terraform-state-210450948229"
     key          = "terraform/state.tfstate"
     region       = "us-east-1"
     encrypt      = true
